@@ -241,6 +241,7 @@ class Cache {
                 if ($size < $value) {
                 	return false;
                 }
+                break;
             default:
                 throw new \Exception('Cache condition '.$type.' not supported');
         }
