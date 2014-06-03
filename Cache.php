@@ -174,16 +174,16 @@ class Cache {
         }
 
         foreach ($conditions as $type => $value) {
-    	    switch ($type) {
-    	    case 'maxage':
+            switch ($type) {
+            case 'maxage':
             case 'max-age':
-    		    // Return false if the file is older than $value
+                // Return false if the file is older than $value
                 $age = time() - filectime($cacheFile);
                 if ($age > $value) {
                     return false;
                 }
-    		    break;
-    	    case 'younger-than':
+                break;
+            case 'younger-than':
             case 'youngerthan':
                 // Return false if the file is older than the file $value, or the files $value
                 $check = function($filename) use ($cacheFile) {
@@ -201,13 +201,13 @@ class Cache {
                         }
                     }
                 }
-    		    break;
-    	    default:
-    		    throw new \Exception('Cache condition '.$type.' not supported');
-	    }
-	}
+                break;
+            default:
+                throw new \Exception('Cache condition '.$type.' not supported');
+        }
+    }
 
-	return true;
+    return true;
     }
 
     /**
