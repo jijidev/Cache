@@ -223,7 +223,7 @@ class Cache {
                 };
 
                 if (!is_array($value)) {
-                    if (!$this->isRemote($file) && $check($value)) {
+                    if (!$this->isRemote($value) && $check($value)) {
                         return false;
                     }
                 } else {
