@@ -234,6 +234,13 @@ class Cache {
                     }
                 }
                 break;
+            case 'minsize':
+            case 'min-size':
+                // Return false if the file is smaller than $value
+                $size = filesize($cacheFile);
+                if ($size < $value) {
+                	return false;
+                }
             default:
                 throw new \Exception('Cache condition '.$type.' not supported');
         }
