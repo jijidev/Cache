@@ -32,6 +32,11 @@ class Cache {
      */
     protected $dirmode = 0777;
 
+    public function __construct($cacheDirectory = 'cache')
+    {
+        $this->cacheDirectory = $cacheDirectory;
+    }
+
     /**
      * Construct the cache system
      *
@@ -174,40 +179,40 @@ class Cache {
         }
 
         foreach ($conditions as $type => $value) {
-            switch ($type) {
-                case 'maxage' :
-                case 'max-age' :
-                    // Return false if the file is older than $value
-                    $age = time() - filectime($cacheFile);
-                    if ($age > $value) {
+    	    switch ($type) {
+    	    case 'maxage':
+            case 'max-age':
+    		    // Return false if the file is older than $value
+                $age = time() - filectime($cacheFile);
+                if ($age > $value) {
+                    return false;
+                }
+    		    break;
+    	    case 'younger-than':
+            case 'youngerthan':
+                // Return false if the file is older than the file $value, or the files $value
+                $check = function($filename) use ($cacheFile) {
+                    return !file_exists($filename) || filectime($cacheFile) < filectime($filename);
+                };
+
+                if (!is_array($value)) {
+                    if (!$this->isRemote($file) && $check($value)) {
                         return false;
                     }
-                    break;
-                case 'younger-than' :
-                case 'youngerthan' :
-                    // Return false if the file is older than the file $value, or the files $value
-                    $check = function($filename) use ($cacheFile) {
-                        return !file_exists($filename) || filectime($cacheFile) < filectime($filename);
-                    };
-
-                    if (!is_array($value)) {
-                        if (!$this->isRemote($value) && $check($value)) {
+                } else {
+                    foreach ($value as $file) {
+                        if (!$this->isRemote($file) && $check($file)) {
                             return false;
                         }
-                    } else {
-                        foreach ($value as $file) {
-                            if (!$this->isRemote($file) && $check($file)) {
-                                return false;
-                            }
-                        }
                     }
-                    break;
-                default :
-                    throw new \Exception('Cache condition ' . $type . ' not supported');
-            }
-        }
+                }
+    		    break;
+    	    default:
+    		    throw new \Exception('Cache condition '.$type.' not supported');
+	    }
+	}
 
-        return true;
+	return true;
     }
 
     /**
@@ -318,12 +323,13 @@ class Cache {
      *
      * @param string $filename the cache file name
      * @param array $conditions an array of conditions about expiration
-     * @param \Closure $function the closure to call if the file does not exists
+     * @param callable $function the function to call if the file does not exists
      * @param bool $file returns the cache file or the file contents
      * @param bool $actual returns the actual cache file
      * @return string content or url of cached file
      */
-    public function getOrCreate($filename, array $conditions = array(), \Closure $function, $file = false, $actual = false) {
+    public function getOrCreate($filename, array $conditions = array(), callable $function, $file = false, $actual = false)
+    {
         $cacheFile = $this->getCacheFile($filename, true, true);
         $data = null;
 
@@ -331,7 +337,7 @@ class Cache {
             $data = file_get_contents($cacheFile);
         } else {
             @unlink($cacheFile);
-            $data = $function($cacheFile);
+            $data = call_user_func($function, $cacheFile);
 
             // Test if the closure wrote the file or if it returned the data
             if (!file_exists($cacheFile)) {
@@ -349,11 +355,12 @@ class Cache {
      * 
      * @param string $filename the cache file name
      * @param array $conditions an array of conditions about expiration
-     * @param \Closure $function the closure to call if the file does not exists
+     * @param callable $function the function to call if the file does not exists
      * @param bool $actual returns the actual cache file
      * @return string content or url of cached file
      */
-    public function getOrCreateFile($filename, array $conditions = array(), \Closure $function, $actual = false) {
+    public function getOrCreateFile($filename, array $conditions = array(), callable $function, $actual = false)
+    {
         return $this->getOrCreate($filename, $conditions, $function, true, $actual);
     }
 
