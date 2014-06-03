@@ -32,11 +32,6 @@ class Cache {
      */
     protected $dirmode = 0777;
 
-    public function __construct($cacheDirectory = 'cache')
-    {
-        $this->cacheDirectory = $cacheDirectory;
-    }
-
     /**
      * Construct the cache system
      *
@@ -251,7 +246,6 @@ class Cache {
         $cacheFile = $this->getCacheFile($filename, true, true);
 
         file_put_contents($cacheFile, $contents);
-        chmod($cacheFile, $this->filemode);
         return $this;
     }
 
